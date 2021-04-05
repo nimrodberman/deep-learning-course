@@ -14,8 +14,14 @@ if __name__ == '__main__':
 
     validationSet = np.array(PeaksData['Yv'])
     validationSetLabels = np.array(PeaksData['Cv'])
+    testSetSize = 200
 
-    #  shuffle
+    #  shuffle validation set
+    idx = np.random.permutation(len(validationSetLabels[0]))
+    testSetX = validationSet[:, idx][:,:testSetSize]
+    testSetY = validationSetLabels[:, idx][:,:testSetSize]
+
+    #  shuffle training set
     idx = np.random.permutation(len(trainSetLabels[0]))
     trainSetX = trainSet[:, idx]
     trainSetY = trainSetLabels[:, idx]
@@ -30,18 +36,19 @@ if __name__ == '__main__':
     theta = np.random.rand(input_size, output_size)
     bias = np.zeros([1, output_size])
 
-    # gradient tests TODO - add
-    # GradientTest(trainSetX_batches[0], trainSetY_batches[0], theta, bias)
-    # gradientTest1(batch_x, theta, b_l, batch_y)
-    # Bias_Grad_Test(batch_x, batch_y, theta, b_l)
+    # gradient test
+    WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
 
-    # iterations = 1000
-    # learningRate = 1e-5
-    # losses = []
-    # for i in range(0, iterations):
-    #     loss, grad_theta, grad_b = Functions.softmaxRegression(theta, batch_x, b_l, batch_y)
-    #     losses.append(loss)
-    #     theta = theta - (learningRate * grad_theta)
-    #     grad_b = grad_b - (learningRate * grad_b)
-    #     if i % 10 == 0:
-    #         print(f"iter number:{i}/{iterations}   loss: {loss}")
+
+    iterations = 1000
+    learningRate = 0.0001
+    for i in range(0, iterations):
+        for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):
+            loss, grad_theta, grad_b, _ = softmaxRegression(theta, batchX, bias, batchY)
+            theta = theta - (learningRate * grad_theta)
+            bias = bias - (learningRate * grad_b)
+
+        if i % 10 == 0:
+            _, _, _, pred = softmaxRegression(theta, testSetX, bias, testSetY)
+            acc = accuracy(pred, testSetY)
+            print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc}%")
