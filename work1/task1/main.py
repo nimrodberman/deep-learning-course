@@ -5,40 +5,50 @@ from scipy.io import loadmat
 
 if __name__ == '__main__':
     print("main started")
-    sample_size=20
+
+    # upload data and set parameters for it
+    sample_size = 20
     PeaksData = loadmat('PeaksData.mat')
     trainSet = np.array(PeaksData['Yt'])
     trainSetLabels = np.array(PeaksData['Ct'])
 
-    idx = np.random.permutation(len(trainSetLabels[0]))[:sample_size]
-    batch_x=trainSet[:,idx]
-    batch_y=trainSetLabels[:,idx]
-    output_size=len(batch_y[:,0])
-    input_size=batch_x.shape[0]
+    validationSet = np.array(PeaksData['Yv'])
+    validationSetLabels = np.array(PeaksData['Cv'])
+    testSetSize = 200
+
+    #  shuffle validation set
+    idx = np.random.permutation(len(validationSetLabels[0]))
+    testSetX = validationSet[:, idx][:,:testSetSize]
+    testSetY = validationSetLabels[:, idx][:,:testSetSize]
+
+    #  shuffle training set
+    idx = np.random.permutation(len(trainSetLabels[0]))
+    trainSetX = trainSet[:, idx]
+    trainSetY = trainSetLabels[:, idx]
+
+    # split into batches
+    trainSetX_batches = np.array_split(trainSetX, 3000, axis=1)
+    trainSetY_batches = np.array_split(trainSetY, 3000, axis=1)
+
+    # set parameters
+    output_size = len(trainSetY_batches[0][:, 0])
+    input_size = trainSetX_batches[0].shape[0]
     theta = np.random.rand(input_size, output_size)
-    b_l = np.zeros([1, output_size])
+    bias = np.zeros([1, output_size])
+
+    # gradient test
+    WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
 
 
-    _, grad_theta, grad_b, _= Functions.softmaxRegression(theta,batch_x,b_l,batch_y)
-    gradientTest1(batch_x,grad_theta,Functions.softmax,theta,b_l,batch_y)#send bias grad
+    iterations = 1000
+    learningRate = 0.0001
+    for i in range(0, iterations):
+        for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):
+            loss, grad_theta, grad_b, _ = softmaxRegression(theta, batchX, bias, batchY)
+            theta = theta - (learningRate * grad_theta)
+            bias = bias - (learningRate * grad_b)
 
-    Bias_Grad_Test(batch_x, batch_y, theta, b_l)
-
-    # iterations = 1000
-    # learningRate = 1e-5
-    # losses = []
-    # for i in range(0, iterations):
-    #     loss, grad_theta, grad_b = Functions.softmaxRegression(theta, batch_x, b_l, batch_y)
-    #     losses.append(loss)
-    #     theta = theta - (learningRate * grad_theta)
-    #     grad_b = grad_b - (learningRate * grad_b)
-    #     if i % 10 == 0:
-    #         print(f"iter number:{i}/{iterations}   loss: {loss}")
-
-
-
-
-
-
-    cost, grad_theta, grad_b = Functions.softmaxRegression(theta, x, bias, y_mat)
-    GradientTest.gradientTest1(x, grad_b, Functions.softmax, theta, grad_theta)
+        if i % 10 == 0:
+            _, _, _, pred = softmaxRegression(theta, testSetX, bias, testSetY)
+            acc = accuracy(pred, testSetY)
+            print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc}%")
