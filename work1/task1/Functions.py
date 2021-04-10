@@ -39,14 +39,16 @@ class NN:
         self.hiddenSize = hiddenSize
         self.layerNumber = layerNumber
         # model architecture
-        self.initParameters(inputSize, outputSize, hiddenSize, layerNumber)
         self.weightsArray = []
         self.biasArray = []
+        self.initParameters()
 
     def initParameters(self):
         # set the input layer
         self.theta_in = np.random.rand(self.inputSize, self.hiddenSize)
         self.bias_in = np.zeros([1, self.hiddenSize])
+        self.weightsArray.append(self.theta_in)
+        self.biasArray.append(self.bias_in)
 
         # set hidden layers by the layer number parameters
         for i in range(self.layerNumber - 2):
@@ -61,40 +63,51 @@ class NN:
 
     def lossFunction(self, probs, target):
         # return log loss average
-        return (-1 / probs.shape[1]) * (np.sum(target.T * np.log(probs)))
+        grad = -(1) * target.T - probs
+        loss = (-1 / probs.shape[1]) * (np.sum(target.T * np.log(probs)))
+        return loss, grad
 
     def forward(self, X):
         layerOutputs = []
+        layerOutputs.append(X)
 
-        # input layer forward with tanh
-        X_1 = np.tanh(np.dot(np.transpose(X), self.theta_in) + self.bias_in)
-        layerOutputs.append(X_1)
-
-        X_L = X_1.copy()
+        X_L = X.copy()
         # hidden layer forward with tanh
         for w, b in zip(self.weightsArray, self.biasArray):
-            X_L = np.tanh(np.dot(np.transpose(X_L), w) + b)
+            X_L = np.tanh(np.dot(np.transpose(X_L), w) + b).T
             layerOutputs.append(X_L)
 
         # softmax output layer
         X_out = np.dot(np.transpose(X_L), self.theta_out) + self.bias_out
         X_prob = softmax(X_out)
-        layerOutputs.append(X_prob)
+        # layerOutputs.append(X_prob.T)
 
-        return X_prob
+        return X_prob, layerOutputs
 
-    def backprop(self, probs, target, x_l, lr):
-        gradArray = []
+    def backprop(self, lr, dl_dy, layerOutputs):
+        theta_grads = []
+        bias_grads = []
         # softmax output layer gradients
-        out_grad_theta = (-1 / x_l.shape[1]) * (x_l @ (target.T - probs))
-        out_grad_b = -(1 / x_l.shape[1]) * np.sum(target.T - probs, axis=0).T
-        gradArray.append(out_grad_theta)
-        gradArray.append(out_grad_b)
+        dl_dhy = layerOutputs[-1] @ dl_dy
+        dl_dby = dl_dy
+        theta_grads.append(dl_dhy)
+        bias_grads.append(dl_dby)
+        dl_dh_curr = self.theta_out @ dl_dy.T
+        # running over the layers not include the last one
+        for layer, t in zip(reversed(layerOutputs[:-1]), reversed(range(len(layerOutputs) - 1))):
+            temp = ((1 - layer ** 2) * dl_dh_curr)
+            bias_grads.append(temp)
+            theta_grads.append(temp @ layerOutputs[t].T)
+            if t > 0:
+                dl_dh_curr = self.weightsArray[t-1] @ temp
 
-        # other tanh layers gradients
+        bias_grads = list(reversed(bias_grads))
+        theta_grads = list(reversed(theta_grads))
 
-
-        return 0;
-
-    def accuracy(self):
-        return 0;
+        for index in range(len(bias_grads)):
+            if index <= len(bias_grads) - 2:
+                self.weightsArray[index] = self.weightsArray[index] - theta_grads[index].T * lr
+                self.biasArray[index] = self.biasArray[index] - bias_grads[index].T * lr
+            else:
+                self.theta_out = self.theta_out - dl_dhy.T * lr
+                self.bias_out = self.bias_out - dl_dby.T * lr
