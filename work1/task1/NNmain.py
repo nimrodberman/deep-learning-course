@@ -7,14 +7,19 @@ if __name__ == '__main__':
     print("main started")
 
     # upload data and set parameters for it
-    sample_size = 20
+    number_of_butches = 3000
+    testSetSize = 200
+    iterations = 1000
+    lr = 0.0001
+    np.random.seed(0)
+
+
     PeaksData = loadmat('PeaksData.mat')
     trainSet = np.array(PeaksData['Yt'])
     trainSetLabels = np.array(PeaksData['Ct'])
 
     validationSet = np.array(PeaksData['Yv'])
     validationSetLabels = np.array(PeaksData['Cv'])
-    testSetSize = 200
 
     #  shuffle validation set
     idx = np.random.permutation(len(validationSetLabels[0]))
@@ -27,8 +32,8 @@ if __name__ == '__main__':
     trainSetY = trainSetLabels[:, idx]
 
     # split into batches
-    trainSetX_batches = np.array_split(trainSetX, 3000, axis=1)
-    trainSetY_batches = np.array_split(trainSetY, 3000, axis=1)
+    trainSetX_batches = np.array_split(trainSetX, number_of_butches, axis=1)
+    trainSetY_batches = np.array_split(trainSetY, number_of_butches, axis=1)
 
     # set parameters
     output_size = len(trainSetY_batches[0][:, 0])
@@ -37,15 +42,15 @@ if __name__ == '__main__':
     # gradient test
     # WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
 
-    nn_model = Functions.NN(input_size, output_size, hiddenSize=6, layerNumber=4)
+    nn_model = Functions.NN(input_size, output_size, hiddenSize=6, hiddenLayerAmount=2)
 
-    iterations = 1000
-    lr = 0.0001
+
     for i in range(0, iterations):
-        for batchX, batchY in zip(trainSetX_batches[0:20], trainSetY_batches[0:20]):
+        for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):
             X_prob, layerOutputs = nn_model.forward(batchX)
             loss, dl_dy = nn_model.lossFunction(probs=X_prob, target=batchY)
             nn_model.backprop(lr=lr, dl_dy=dl_dy, layerOutputs=layerOutputs)
         if i % 10 == 0:
-            acc = accuracy(X_prob, testSetY)
+            X_prob, layerOutputs = nn_model.forward(trainSetX)
+            acc = accuracy(X_prob, trainSetY)
             print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc}%")

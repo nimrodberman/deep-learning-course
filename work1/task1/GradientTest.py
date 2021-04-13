@@ -43,29 +43,6 @@ def WeightsGradientTest(theta, b, xs, ys):
     plt.show()
 
 
-# def gradientTest1(x,theta, bias, y_mat):
-#     # sample a random unit vector
-#     d = np.random.rand(x.shape[0])
-#     d = d / np.linalg.norm(d)
-#
-#     firstOrderArr = []
-#     secondOrderArr = []
-#
-#     cost, grad_theta, grad_b, _ = softmaxRegression(theta, x, bias,y_mat)
-#
-#     for eps in epsilonArray:
-#         theta_diff = theta
-#         theta_diff = theta_diff + (d * eps).reshape(2, 1)
-#         epsilon_cost = softmaxRegression(theta_diff, x, bias, y_mat)[0]
-#
-#         firstOrderArr.append(abs(epsilon_cost - cost))
-#         secondOrderArr.append(abs(epsilon_cost - cost - (eps * (d.T @ grad_theta))))
-#
-#     plt.plot(firstOrderArr, epsilonArray, secondOrderArr, epsilonArray)
-#     print("finished test 1")
-#     return 0;
-
-
 def BiasGradientTest(X, Y, W, b):
     iter = 20
     diff = np.zeros(iter)
@@ -90,3 +67,6 @@ def BiasGradientTest(X, Y, W, b):
     plt.title('bais gradient test result')
     plt.legend('diff without grad', 'diff with grad')
     plt.show()
+
+
+# def jacobian_test_input(X,thetha):
