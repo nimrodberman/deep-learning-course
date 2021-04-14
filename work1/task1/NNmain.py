@@ -12,9 +12,8 @@ if __name__ == '__main__':
     iterations = 1000
     lr = 0.0001
     np.random.seed(0)
-    hiddenSize=25
-    hiddenLayerAmount=5
-
+    hiddenSize = 25
+    hiddenLayerAmount = 5
 
     PeaksData = loadmat('PeaksData.mat')
     trainSet = np.array(PeaksData['Yt'])
@@ -46,12 +45,11 @@ if __name__ == '__main__':
 
     nn_model = Functions.NN(input_size, output_size, hiddenSize=hiddenSize, hiddenLayerAmount=hiddenLayerAmount)
 
-
     for i in range(0, iterations):
         for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):
             X_prob, layerOutputs = nn_model.forward(batchX)
-            loss, dl_dy = nn_model.lossFunction(probs=X_prob, target=batchY    ,x_L=batchX)
-            nn_model.backprop(lr=lr, dl_dy=dl_dy, layerOutputs=layerOutputs)
+            loss, dl_dy = nn_model.lossFunction(probs=X_prob, target=batchY, x_L=batchX)
+            nn_model.backprop(lr=lr, dl_dy=dl_dy, layerOutputs=layerOutputs, x_l=batchX)
         if i % 10 == 0:
             X_prob, layerOutputs = nn_model.forward(trainSetX)
             acc = accuracy(X_prob, trainSetY)
