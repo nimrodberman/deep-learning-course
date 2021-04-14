@@ -44,7 +44,7 @@ if __name__ == '__main__':
     bias = np.zeros([1, output_size])
 
     # gradient test
-    # WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
+    BiasGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
 
     train_accuracys=[]
     test_accuracys=[]
@@ -66,21 +66,9 @@ if __name__ == '__main__':
             print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc_test}%    batch size:{batchX.shape[1]}")
 
     xbar=np.arange(len(train_accuracys))
-    # plt.plot(xbar, train_accuracys, label="train")
-    # plt.plot(xbar, test_accuracys, label="test")
-    #
-    # # plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center',
-    # #            ncol=2, mode="expand", borderaxespad=0.)
-    # plt.xlabel('epoch')
-    # plt.ylabel('accuracy')
-    # plt.title('Success Percentages')
-    # plt.legend('train', 'test')
-    # plt.show()
-
     fig, ax = plt.subplots()
     ax.plot(xbar, train_accuracys,color='blue', label='train')
     ax.plot(xbar, test_accuracys, color='red', label='test')
-    # ax.plot(xbar, losses, 'k:', label='loss')
 
     legend = ax.legend(loc='lower right', fontsize='x-large')
     legend.get_frame().set_facecolor('C0')

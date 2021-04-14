@@ -6,31 +6,25 @@ epsilonArray = [np.power(0.5, i) for i in range(0, 10)]
 rangeArr = [i for i in range(0, 10)]
 
 
-
 def WeightsGradientTest(theta, b, xs, ys):
-    iter_n = 20
-    # diff=np.zeros(iter_n)
-    # diff_grad=np.zeros(iter_n)
-
     firstOrderArr = []
     secondOrderArr = []
-    d = np.random.rand(xs.shape[0])
-    d = d / np.linalg.norm(d)
+
     cost, grad_theta, _, _ = softmaxRegression(theta, xs, b, ys)
-    grad = grad_theta[:, 0]
+    d = np.random.rand(grad_theta.shape[0], grad_theta.shape[1])
+    d = d / np.linalg.norm(d)
+    d_vec = d.flatten()
+    grad = grad_theta.flatten()
 
     for eps in epsilonArray:
         d_theta = theta.copy()
-        d_theta[:, 0] += d * eps
+        d_theta = d_theta + d * eps
         d_cost = softmaxRegression(d_theta, xs, b, ys)[0]
-        # diff[i]=abs(d_cost-fw)
-        # diff_grad[i]=abs(d_cost-fw-eps*d.T@grad)
         firstOrderArr.append(abs(d_cost - cost))
-        secondOrderArr.append(abs(d_cost - cost - eps * d.T @ grad))
+        secondOrderArr.append(abs(d_cost - cost - eps * d_vec.T @ grad))
 
-
-    plt.plot(rangeArr,firstOrderArr,label="first-order")
-    plt.plot(rangeArr,secondOrderArr,label="second-order")
+    plt.plot(rangeArr, firstOrderArr, label="first-order")
+    plt.plot(rangeArr, secondOrderArr, label="second-order")
     plt.yscale("log")
     plt.xscale("log")
 
@@ -39,34 +33,36 @@ def WeightsGradientTest(theta, b, xs, ys):
     plt.xlabel('epsilons')
     plt.ylabel('absolute differance')
     plt.title('wights gradient test:')
-    # plt.legend('first order', 'second order')
     plt.show()
 
 
-def BiasGradientTest(X, Y, W, b):
-    iter = 20
-    diff = np.zeros(iter)
-    diff_grad = np.zeros(iter)
-    epsilons = [0.5 ** i for i in range(iter)]
-    n, m = X.shape
-    l = len(b.T)
-    d = np.random.rand(l)
-    d = d / np.linalg.norm(d)
-    fw, grad_theta, grad_b, _ = softmaxRegression(theta_L=W, x_L=X, b_L=b, y_mat=Y)
-    for i, eps in enumerate(epsilons):
-        b_diff = b.copy()
-        b_diff += d * eps
-        fw_eps = softmaxRegression(W, X, b_diff, Y)[0]
-        diff[i] = np.abs(fw_eps - fw)
-        diff_grad[i] = np.absolute(fw_eps - fw - eps * d.T @ grad_b)
+def BiasGradientTest(theta, b, xs, ys):
+    firstOrderArr = []
+    secondOrderArr = []
 
-    plt.semilogy(np.arange((1, iter + 1, 1), diff))
-    plt.semilogy(np.arange((1, iter + 1, 1), diff_grad))
+    cost, grad_theta, grad_b, _ = softmaxRegression(theta, xs, b, ys)
+    d = np.random.rand(grad_b.shape[0])
+    d_vec = d / np.linalg.norm(d)
+    grad = grad_b
+
+    for eps in epsilonArray:
+        d_b = b.copy()
+        d_b = d_b + d * eps
+        d_cost = softmaxRegression(theta, xs, d_b, ys)[0]
+        firstOrderArr.append(abs(d_cost - cost))
+        secondOrderArr.append(abs(d_cost - cost - eps * d_vec.T @ grad))
+
+    plt.plot(rangeArr, firstOrderArr, label="first-order")
+    plt.plot(rangeArr, secondOrderArr, label="second-order")
+    plt.yscale("log")
+    plt.xscale("log")
+
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center',
+               ncol=2, mode="expand", borderaxespad=0.)
     plt.xlabel('epsilons')
-    plt.ylabel('diffrences')
-    plt.title('bais gradient test result')
-    plt.legend('diff without grad', 'diff with grad')
+    plt.ylabel('absolute differance')
+    plt.title('bias gradient test:')
     plt.show()
 
 
-# def jacobian_test_input(X,thetha):
+
