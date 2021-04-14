@@ -3,7 +3,7 @@ from scipy.io import loadmat
 import matplotlib.pyplot as plt
 
 from work1.task1 import Functions
-from work1.task1.GradientTest import *
+from work1.task1.JacAndGradTest import *
 if __name__ == '__main__':
     print("main started")
 

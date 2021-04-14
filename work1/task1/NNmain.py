@@ -1,6 +1,6 @@
 import numpy as np
 from work1.task1 import Functions
-from work1.task1.GradientTest import *
+from work1.task1.JacAndGradTest import *
 from scipy.io import loadmat
 
 if __name__ == '__main__':
@@ -44,6 +44,8 @@ if __name__ == '__main__':
     # WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
 
     nn_model = Functions.NN(input_size, output_size, hiddenSize=hiddenSize, hiddenLayerAmount=hiddenLayerAmount)
+
+    JacobianTestHidden(nn_model,trainSetX_batches[0],trainSetY_batches[0])
 
     for i in range(0, iterations):
         for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):

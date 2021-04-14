@@ -129,3 +129,5 @@ class NN:
 
         self.theta_out = self.theta_out - theta_out_grad * lr
         self.bias_out = self.bias_out - bias_out_grad * lr
+
+        return theta_grads , theta_out_grad , bias_grads , bias_out_grad
