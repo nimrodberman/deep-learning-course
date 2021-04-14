@@ -57,40 +57,36 @@ class NN:
 
         # set hidden layers by the layer number parameters
         for i in range(self.hiddenLayerAmount):
+            # if there are 1 hidden layers we will want to include only this matrix
             if i == 0:
                 self.weightsArray.append(theta_in)
                 self.biasArray.append(bias_in)
             else:
                 theta = np.random.uniform(-limit, limit, size=(self.hiddenSize, self.hiddenSize))
-                # theta = np.random.rand(self.hiddenSize, self.hiddenSize)
                 bias = np.zeros([1, self.hiddenSize])
                 self.weightsArray.append(theta)
                 self.biasArray.append(bias)
 
+        # if hidden layer number is 0 we will want to change the output matrix to the input size
+        # the weightArray doesn't contain the output layer because we use different activation function
         if self.hiddenLayerAmount == 0:
             self.hiddenSize = self.inputSize
         # set the output layer
         self.theta_out = np.random.uniform(-limit, limit, size=(self.hiddenSize, self.outputSize))
-        # self.theta_out = np.random.rand(self.hiddenSize, self.outputSize)
         self.bias_out = np.zeros([1, self.outputSize])
-        # the weightArray doesnt contain the output layer because we use different activation function
 
     def lossFunction(self, probs, target, x_L):
 
         m = x_L.shape[1]
-        grad_theta = (-1 / m) * (x_L @ (target.T - probs))
-        grad_b = -(1 / m) * np.sum(target.T - probs, axis=0).T
 
-        # return log loss average
+        # dl_dy as y = h_n @ theta_out + b_n
         grad = target.T - probs
+        # return log loss average
         loss = (-1 / probs.shape[0]) * (np.sum(target.T * np.log(probs)))
         return loss, grad
 
-    #
-
     def forward(self, X):
-        layerOutputs = []
-        layerOutputs.append(X.copy())
+        layerOutputs = [X.copy()]
 
         X_L = X.copy()
         # hidden layer forward with tanh
@@ -101,14 +97,13 @@ class NN:
         # softmax output layer
         X_out = np.dot(np.transpose(X_L), self.theta_out) + self.bias_out
         X_prob = softmax(X_out)
-        # layerOutputs.append(X_prob.T)
 
         return X_prob, layerOutputs
 
-    def backprop(self, lr, dl_dy, layerOutputs):
+    def backprop(self, lr, dl_dy, layerOutputs, x_l):
         theta_grads = []
         bias_grads = []
-        batch_size = 9
+        batch_size = x_l.shape[1]
 
         # softmax output layer gradients, the gradient of the last layer is
         # dl/dy * last_hidden_layer_values
@@ -116,7 +111,7 @@ class NN:
         bias_out_grad = (-1 / batch_size) * np.sum(dl_dy, axis=0)
         dl_dh_curr = self.theta_out @ dl_dy.T
 
-        # running over the hidden layers
+        # running over the hidden layers and calculate their weights and biases gradient
         for t in reversed(range(self.hiddenLayerAmount)):
             temp = ((1 - layerOutputs[t + 1] ** 2) * dl_dh_curr)
             theta_grads.append((-1 / batch_size) * (temp @ layerOutputs[t].T))
@@ -133,7 +128,4 @@ class NN:
             self.biasArray[index] = self.biasArray[index] - bias_grads[index].T * lr
 
         self.theta_out = self.theta_out - theta_out_grad * lr
-        # self.bias_out = self.bias_out - np.mean(bias_out_grad ,axis=0) * lr
         self.bias_out = self.bias_out - bias_out_grad * lr
-
-        # b
