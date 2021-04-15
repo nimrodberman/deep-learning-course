@@ -13,7 +13,7 @@ if __name__ == '__main__':
     lr = 0.0001
     np.random.seed(0)
     hiddenSize = 25
-    hiddenLayerAmount = 5
+    hiddenLayerAmount = 1
 
     PeaksData = loadmat('PeaksData.mat')
     trainSet = np.array(PeaksData['Yt'])
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     nn_model = Functions.NN(input_size, output_size, hiddenSize=hiddenSize, hiddenLayerAmount=hiddenLayerAmount)
 
-    JacobianTestHidden(nn_model,trainSetX_batches[0],trainSetY_batches[0])
+    JacobianTestHidden(nn_model,trainSetX_batches[0][:,0].reshape(2,1),trainSetY_batches[0][:,0].reshape(5,1))
 
     for i in range(0, iterations):
         for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):
