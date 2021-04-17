@@ -33,25 +33,23 @@ def accuracy(prob, testSetY):
 
 
 class NN:
-    def __init__(self, hidden_network_dimensions, input_size, output_size):
-        self.output_size = output_size
-        self.input_size = input_size
+    def __init__(self, layer_network_dimensions):
         self.thetasArray = []
         self.biasArray = []
 
-        self.initParameters(hidden_network_dimensions)
+        self.initParameters(layer_network_dimensions)
 
-    def initParameters(self, hidden_network_dimensions):
+    def initParameters(self, layer_network_dimensions):
         # collect the weights with normal distribution
         np.random.seed(0)
         scale = 1 / max(1., (2 + 2) / 2.)
         limit = math.sqrt(3.0 * scale)
 
         # set weights
-        for i in range(1, len(hidden_network_dimensions)):
+        for i in range(1, len(layer_network_dimensions)):
             theta = np.random.uniform(-limit, limit,
-                                      size=(hidden_network_dimensions[i], hidden_network_dimensions[i - 1]))
-            bias = np.zeros([hidden_network_dimensions[i], 1])
+                                      size=(layer_network_dimensions[i], layer_network_dimensions[i - 1]))
+            bias = np.zeros([layer_network_dimensions[i], 1])
             self.thetasArray.append(theta)
             self.biasArray.append(bias)
 
@@ -139,7 +137,9 @@ class NN:
     """
 
     def layerForward(self, theta_n, x_n_prev, b_n):
+        # calculate one step forward
         linear_res = theta_n @ x_n_prev + b_n
+        # apply nonlinear activation function
         nonlinear_res = np.tanh(linear_res)
 
         return linear_res, nonlinear_res
@@ -148,7 +148,9 @@ class NN:
     Description: calculates one forward pass through the all network
     @:param - inputs - (h_0, batch_size)
     @:param - target - (class_number, batch_size) one hot vector labels matrix
-    @:param - 
+    @:param - cost - a scalar that was calculated by the cost function and measures the energy the network require
+    @:return - linearLayerArr - Array of the forward calculation without the activation function
+    @:return - nonlinearLayerArr - Array of the forward calculation with the nonlinear activation function
     """
 
     def nnForward(self, inputs, target):
@@ -156,33 +158,37 @@ class NN:
         nonlinearLayerArr = [inputs.copy()]
 
         # propagate forward though each layer
-        for i in range(0, len(self.thetasArray)-1):
-            linear_res, nonlinear_res = self.layerForward(self.thetasArray[i],
-                                                          nonlinearLayerArr[i],
-                                                          self.biasArray[i])
+        for i in range(0, len(self.thetasArray) - 1):
+            linear_res, nonlinear_res = self.layerForward(self.thetasArray[i], nonlinearLayerArr[i], self.biasArray[i])
             linearLayerArr.append(linear_res)
             nonlinearLayerArr.append(nonlinear_res)
 
         # calculate the last layer(softmax) result and the cost function
-        cost, probs = self.softmaxLayer(target, self.thetasArray[-1],
-                                        nonlinearLayerArr[-1], self.biasArray[-1])
+        cost, probs = self.softmaxLayer(target, self.thetasArray[-1], nonlinearLayerArr[-1], self.biasArray[-1])
         nonlinearLayerArr.append(probs)
 
         return cost, linearLayerArr, nonlinearLayerArr
 
     """
     Description: calculate the gradient of each parameter
+    @:param - linearLayerArr - Array of the forward calculation without the activation function
+    @:param - nonlinearLayerArr - Array of the forward calculation with the nonlinear activation function
+    @:param - target - (class_number, batch_size) one hot vector labels matrix
+    @:return - theta_grads - Array of each weights gradient
+    @:return - bias_grads - Array of each bias gradient
 
     """
 
     def backpropagation(self, linearArray, nonlinearArray, target):
         theta_grads = []
         bias_grads = []
-        layer_number = len(nonlinearArray) -1
+        layer_number = len(nonlinearArray) - 1
+
         # last layer gradient computation
         last_layer = nonlinearArray[layer_number]
-        prev_last_layer = nonlinearArray[layer_number-1]
-        dl_dtheta_n, dl_db_n, dl_dx_prev_n = self.softmaxGradient(target, self.thetasArray[layer_number-1], last_layer, prev_last_layer)
+        prev_last_layer = nonlinearArray[layer_number - 1]
+        dl_dtheta_n, dl_db_n, dl_dx_prev_n = self.softmaxGradient(target, self.thetasArray[layer_number - 1],
+                                                                  last_layer, prev_last_layer)
         theta_grads.append(dl_dtheta_n)
         bias_grads.append(dl_db_n)
 
@@ -193,12 +199,19 @@ class NN:
             prev_x_n = nonlinearArray[i - 1]
             w = self.thetasArray[i - 1]
 
-            dl_dtheta_n, dl_db_n, dl_dx_prev_n  = self.hiddenLayerGradient(w, x_n, prev_x_n, dl_dh_next)
+            dl_dtheta_n, dl_db_n, dl_dx_prev_n = self.hiddenLayerGradient(w, x_n, prev_x_n, dl_dh_next)
 
             theta_grads.append(dl_dtheta_n)
             bias_grads.append(dl_db_n)
 
         return list(reversed(theta_grads)), list(reversed(bias_grads))
+
+    """
+    Description: taking one step with lr pace toward the gradient
+    @:param - lr - scalar representing the learning rate of the model
+    @:param - theta_grads - Array of each weights gradient
+    @:param - bias_grads - Array of each bias gradient
+    """
 
     def step(self, lr, theta_grads, bias_grads):
         for i in range(len(self.thetasArray)):
