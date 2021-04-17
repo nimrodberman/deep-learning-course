@@ -160,7 +160,6 @@ class NN:
     @:param - 
     """
 
-    # todo - add thetaArray
     def nnForward(self, inputs, target):
         linearLayerArr = [inputs.copy()]
         nonlinearLayerArr = [inputs.copy()]
