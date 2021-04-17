@@ -7,10 +7,10 @@ if __name__ == '__main__':
     print("main started")
 
     # upload data and set parameters for it
-    number_of_butches = 3000
+    number_of_butches = 200
     testSetSize = 200
     iterations = 1000
-    lr = 0.0001
+    lr = 0.1
     np.random.seed(0)
     hiddenSize = 25
     hiddenLayerAmount = 1
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # gradient test
     # WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
-    network_hidden_dims = [25, 25, 25]
+    network_hidden_dims = [2,5, 6, 8 , 10, 5]
 
     nn_model = Functions.NN(network_hidden_dims, input_size, output_size)
 

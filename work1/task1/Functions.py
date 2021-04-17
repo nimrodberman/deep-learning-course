@@ -46,23 +46,14 @@ class NN:
         np.random.seed(0)
         scale = 1 / max(1., (2 + 2) / 2.)
         limit = math.sqrt(3.0 * scale)
-        # set the input layer
-        theta_in = np.random.uniform(-limit, limit, size=(self.input_size, hidden_network_dimensions[0])).T
-        bias_in = np.zeros([1, hidden_network_dimensions[0]]).T
-        self.thetasArray.append(theta_in)
-        self.biasArray.append(bias_in)
 
-        # set hidden to hidden weights
-        for i in range(len(hidden_network_dimensions) - 1):
+        # set weights
+        for i in range(1, len(hidden_network_dimensions)):
             theta = np.random.uniform(-limit, limit,
-                                      size=(hidden_network_dimensions[i], hidden_network_dimensions[i + 1])).T
-            bias = np.zeros([1, hidden_network_dimensions[i + 1]]).T
+                                      size=(hidden_network_dimensions[i], hidden_network_dimensions[i - 1]))
+            bias = np.zeros([hidden_network_dimensions[i], 1])
             self.thetasArray.append(theta)
             self.biasArray.append(bias)
-
-        # set the output layer
-        self.theta_out = np.random.uniform(-limit, limit, size=(hidden_network_dimensions[-1], self.output_size)).T
-        self.bias_out = np.zeros([1, self.output_size]).T
 
     """
     Description: this function calculate the gradient of each hidden layer
@@ -114,7 +105,7 @@ class NN:
     Description: last layer of the the nn net.
     This layer returns the odds of each class on a n' class vector
     h_n = class_number
-    
+
     @:param - target - (class_number, batch_size) one hot vector labels matrix
     @:param - theta_n - (h_n, h_n-1) weight matrix
     @:param - x_prev_n - (h_n-1, batch_size) layer matrix
@@ -165,44 +156,44 @@ class NN:
         nonlinearLayerArr = [inputs.copy()]
 
         # propagate forward though each layer
-        for i in range(len(self.thetasArray)):
-            nonlinear_res, linear_res = self.layerForward(self.thetasArray[i],
+        for i in range(0, len(self.thetasArray)-1):
+            linear_res, nonlinear_res = self.layerForward(self.thetasArray[i],
                                                           nonlinearLayerArr[i],
                                                           self.biasArray[i])
             linearLayerArr.append(linear_res)
             nonlinearLayerArr.append(nonlinear_res)
 
         # calculate the last layer(softmax) result and the cost function
-        cost, probs = self.softmaxLayer(target, self.theta_out,
-                                        nonlinearLayerArr[-1], self.bias_out)
+        cost, probs = self.softmaxLayer(target, self.thetasArray[-1],
+                                        nonlinearLayerArr[-1], self.biasArray[-1])
         nonlinearLayerArr.append(probs)
 
         return cost, linearLayerArr, nonlinearLayerArr
 
     """
     Description: calculate the gradient of each parameter
-    
+
     """
 
     def backpropagation(self, linearArray, nonlinearArray, target):
         theta_grads = []
         bias_grads = []
+        layer_number = len(nonlinearArray) -1
         # last layer gradient computation
-        last_layer = nonlinearArray[-1]
-        prev_last_layer = nonlinearArray[-2]
-        dl_dtheta_n, dl_db_n, dl_dx_prev_n = self.softmaxGradient(target, self.theta_out, last_layer, prev_last_layer)
+        last_layer = nonlinearArray[layer_number]
+        prev_last_layer = nonlinearArray[layer_number-1]
+        dl_dtheta_n, dl_db_n, dl_dx_prev_n = self.softmaxGradient(target, self.thetasArray[layer_number-1], last_layer, prev_last_layer)
         theta_grads.append(dl_dtheta_n)
         bias_grads.append(dl_db_n)
 
         # calculate each layer parameters gradient
-        #
-        for i in range(len(nonlinearArray)-2, 0, -1):
+        for i in range(layer_number - 1, 0, -1):
             dl_dh_next = dl_dx_prev_n.copy()
-            w = self.thetasArray[i-1]
-            prev_x_n = nonlinearArray[i - 1]
             x_n = linearArray[i]
+            prev_x_n = nonlinearArray[i - 1]
+            w = self.thetasArray[i - 1]
 
-            dl_dtheta_n, dl_db_n, dl_dx_prev_n = self.hiddenLayerGradient(w, x_n, prev_x_n, dl_dh_next)
+            dl_dtheta_n, dl_db_n, dl_dx_prev_n  = self.hiddenLayerGradient(w, x_n, prev_x_n, dl_dh_next)
 
             theta_grads.append(dl_dtheta_n)
             bias_grads.append(dl_db_n)
@@ -210,110 +201,6 @@ class NN:
         return list(reversed(theta_grads)), list(reversed(bias_grads))
 
     def step(self, lr, theta_grads, bias_grads):
-        for i in range(len(self.thetasArray) - 1):
+        for i in range(len(self.thetasArray)):
             self.thetasArray[i] = self.thetasArray[i] - lr * theta_grads[i]
             self.biasArray[i] = self.biasArray[i] - lr * bias_grads[i]
-
-        self.theta_out = self.theta_out - lr * theta_grads[-1]
-        self.bias_out = self.bias_out - lr * bias_grads[-1]
-
-
-
-# todo delete
-class OLD_NN:
-    def __init__(self, inputSize, outputSize, hiddenSize, hiddenLayerAmount):
-        # model parameters
-        self.inputSize = inputSize
-        self.outputSize = outputSize
-        self.hiddenSize = hiddenSize
-        self.hiddenLayerAmount = hiddenLayerAmount
-        # model architecture
-        # weight array will contain the input layer and the hidden layers
-        self.weightsArray = []
-        self.biasArray = []
-        self.initParameters()
-
-    def initParameters(self):
-        # collect the weights with normal distribution
-        np.random.seed(0)
-        scale = 1 / max(1., (2 + 2) / 2.)
-        limit = math.sqrt(3.0 * scale)
-        # set the input layer
-        theta_in = np.random.uniform(-limit, limit, size=(self.inputSize, self.hiddenSize))
-        # self.theta_in = np.random.randn(self.inputSize, self.hiddenSize)
-        bias_in = np.zeros([1, self.hiddenSize])
-
-        # set hidden layers by the layer number parameters
-        for i in range(self.hiddenLayerAmount):
-            # if there are 1 hidden layers we will want to include only this matrix
-            if i == 0:
-                self.weightsArray.append(theta_in)
-                self.biasArray.append(bias_in)
-            else:
-                theta = np.random.uniform(-limit, limit, size=(self.hiddenSize, self.hiddenSize))
-                bias = np.zeros([1, self.hiddenSize])
-                self.weightsArray.append(theta)
-                self.biasArray.append(bias)
-
-        # if hidden layer number is 0 we will want to change the output matrix to the input size
-        # the weightArray doesn't contain the output layer because we use different activation function
-        if self.hiddenLayerAmount == 0:
-            self.hiddenSize = self.inputSize
-        # set the output layer
-        self.theta_out = np.random.uniform(-limit, limit, size=(self.hiddenSize, self.outputSize))
-        self.bias_out = np.zeros([1, self.outputSize])
-
-    def lossFunction(self, probs, target, x_L):
-
-        m = x_L.shape[1]
-
-        # dl_dy as y = h_n @ theta_out + b_n
-        grad = target.T - probs
-        # return log loss average
-        loss = (-1 / probs.shape[0]) * (np.sum(target.T * np.log(probs)))
-        return loss, grad
-
-    def forward(self, X):
-        layerOutputs = [X.copy()]
-
-        X_L = X.copy()
-        # hidden layer forward with tanh
-        for w, b in zip(self.weightsArray, self.biasArray):
-            X_L = np.tanh(np.dot(np.transpose(X_L), w) + b).T
-            layerOutputs.append(X_L)
-
-        # softmax output layer
-        X_out = np.dot(np.transpose(X_L), self.theta_out) + self.bias_out
-        X_prob = softmax(X_out)
-
-        return X_prob, layerOutputs
-
-    def backprop(self, lr, dl_dy, layerOutputs, x_l):
-        theta_grads = []
-        bias_grads = []
-        batch_size = x_l.shape[1]
-
-        # softmax output layer gradients, the gradient of the last layer is
-        # dl/dy * last_hidden_layer_values
-        theta_out_grad = (-1 / batch_size) * layerOutputs[-1] @ dl_dy
-        bias_out_grad = (-1 / batch_size) * np.sum(dl_dy, axis=0)
-        dl_dh_curr = self.theta_out @ dl_dy.T
-
-        # running over the hidden layers and calculate their weights and biases gradient
-        for t in reversed(range(self.hiddenLayerAmount)):
-            temp = ((1 - layerOutputs[t + 1] ** 2) * dl_dh_curr)
-            theta_grads.append((-1 / batch_size) * (temp @ layerOutputs[t].T))
-            bias_grads.append((-1 / batch_size) * (np.sum(temp, axis=1)))
-            dl_dh_curr = self.weightsArray[t] @ temp
-
-        # reversing the lists for correct order
-        bias_grads = list(reversed(bias_grads))
-        theta_grads = list(reversed(theta_grads))
-
-        # update wights
-        for index in range(self.hiddenLayerAmount):
-            self.weightsArray[index] = self.weightsArray[index] - theta_grads[index].T * lr
-            self.biasArray[index] = self.biasArray[index] - bias_grads[index].T * lr
-
-        self.theta_out = self.theta_out - theta_out_grad * lr
-        self.bias_out = self.bias_out - bias_out_grad * lr
