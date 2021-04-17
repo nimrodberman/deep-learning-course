@@ -42,17 +42,18 @@ if __name__ == '__main__':
 
     # gradient test
     # WeightsGradientTest(theta,bias,trainSetX_batches[0],trainSetY_batches[0])
+    network_hidden_dims = [25, 25, 25]
 
-    nn_model = Functions.NN(input_size, output_size, hiddenSize=hiddenSize, hiddenLayerAmount=hiddenLayerAmount)
+    nn_model = Functions.NN(network_hidden_dims, input_size, output_size)
 
-    JacobianTestHidden(nn_model,trainSetX_batches[0][:,0].reshape(2,1),trainSetY_batches[0][:,0].reshape(5,1))
+    # JacobianTestHidden(nn_model, trainSetX_batches[0][:, 0].reshape(2, 1), trainSetY_batches[0][:, 0].reshape(5, 1))
 
     for i in range(0, iterations):
         for batchX, batchY in zip(trainSetX_batches, trainSetY_batches):
-            X_prob, layerOutputs = nn_model.forward(batchX)
-            loss, dl_dy = nn_model.lossFunction(probs=X_prob, target=batchY, x_L=batchX)
-            nn_model.backprop(lr=lr, dl_dy=dl_dy, layerOutputs=layerOutputs, x_l=batchX)
-        if i % 10 == 0:
-            X_prob, layerOutputs = nn_model.forward(trainSetX)
-            acc = accuracy(X_prob, trainSetY)
-            print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc}%")
+            loss, linearLayerArr, nonlinearLayerArr = nn_model.nnForward(batchX, batchY)
+            theta_grads, bias_grads = nn_model.backpropagation(linearLayerArr, nonlinearLayerArr, batchY)
+            nn_model.step(lr, theta_grads, bias_grads)
+
+        _, linearLayerArr, nonlinearLayerArr = nn_model.nnForward(testSetX, testSetY)
+        acc = accuracy(nonlinearLayerArr[-1], testSetY)
+        print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc}%")

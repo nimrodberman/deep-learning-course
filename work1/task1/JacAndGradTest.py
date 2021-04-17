@@ -89,7 +89,7 @@ def JacobianTestHidden(nn: NN, xs, ys):
     output_layers[1] = U
 
     grads = nn.backprop(0, dl_dy, output_layers, xs)[0]
-    W_Jac = grads[0]
+    W_Jac = U @ grads[0].T
 
     # U = normalize(np.random.rand(out_dimensions, m))
     # original_W = layer.W.copy()
