@@ -1,6 +1,7 @@
 import numpy as np
+
 import matplotlib.pyplot as plt
-from work1.task1.Functions import *
+from Functions import *
 
 epsilonArray = [np.power(0.5, i) for i in range(0, 10)]
 rangeArr = [i for i in range(0, 10)]
@@ -65,6 +66,7 @@ def BiasGradientTest(theta, b, xs, ys):
     plt.show()
 
 
+# TODO delete
 def JacobianTestHidden(nn: NN, xs, ys):
     n, m = xs.shape
 
@@ -124,6 +126,8 @@ def JacobianTestHidden(nn: NN, xs, ys):
     plt.legend(("diff without grad", "diff with grad"))
     plt.show()
 
+
+# TODO delete
 def JacobianTestHidden2(nn: NN, xs, ys):
     input_size, batch_size = xs.shape
     u = np.random.rand(nn.hiddenSize, batch_size)
@@ -161,4 +165,107 @@ def JacobianTestHidden2(nn: NN, xs, ys):
         firstOrderArr.append(abs(gx_eps - gx))
         secondOrderArr.append(abs(gx_eps - gx - eps * d_flat.T @ grad))
 
-    x = 5
+
+def grad_check_help(test, X, hot_vec, nn: NN):
+
+    if test == 'loss':
+        nonlinear_res, probs = nn.softmaxLayer(target=hot_vec, theta_n=nn.thetasArray[0], x_prev_n=X,
+                                               b_n=nn.biasArray[0])
+        dW, db, _ = nn.softmaxGradient(target=hot_vec, theta_n=nn.thetasArray[0], x_n=probs, x_prev_n=X)
+    elif test == 'hidden_layer':
+        linear_res, nonlinear_res = nn.layerForward(theta_n=nn.thetasArray[0], x_n_prev=X, b_n=nn.biasArray[0])
+        n, batch_size = linear_res.shape
+        # for single layer check we use:
+        dH_next = np.ones((n, batch_size))
+        dW, db, _ = nn.hiddenLayerGradient(theta_n=nn.thetasArray[0], x_n=linear_res, x_prev_n=X, x_next_grad=dH_next)
+    else:  # check all network
+        nonlinear_res, linearLayerArr, nonlinearLayerArr = nn.nnForward(inputs=X, target=hot_vec)
+        dW, db = nn.backpropagation(linearArray=linearLayerArr, nonlinearArray=nonlinearLayerArr, target=hot_vec)
+    return nonlinear_res, dW, db
+
+
+def grad_check(test='loss', batch_size=1, L=1):
+    # layers and dimensions
+    print("run tests")
+    if test != 'all':
+        L = 1
+
+    # chose layers size
+    # layers_dim = list(np.random.randint(2, 10, L + 1))
+    layers_dim = [6] #TODO switch back to random
+    # input_size = layers_dim[0]
+    input_size = 2
+    # output_size = layers_dim[-1]
+    number_of_labels = output_size = layers_dim[-1] #TODO switch back to smart
+    # init wights
+    nn_model = NN(layers_dim, input_size, output_size)
+
+    # hidden_nodes = layers_dim[1:-1]
+
+    X = np.random.randn(input_size, batch_size)
+    Y = np.random.choice(range(number_of_labels), size=batch_size)
+    y_hot_vec = np.zeros((number_of_labels, batch_size))
+    y_hot_vec[Y, np.arange(batch_size)] = 1
+
+    deltaTheta = [np.random.random(theta.shape) for theta in nn_model.thetasArray]
+    deltaBias = [np.random.random(len(bias)) for bias in nn_model.biasArray]
+
+    firstOrderArr = []
+    secondOrderArr = []
+
+    for eps in epsilonArray:
+        # original loss function and its gradients:
+        # f0, grads = grad_check_help(test=test, X=A0, hot_vec=y_hot_vec, Theta=Theta, L=L, activation_f=activation_f)
+        result, dW, db = grad_check_help(test=test, X=X, hot_vec=y_hot_vec, nn=nn_model)
+        # compute the eps and eps squared term for each parameter
+        for l in range(L):
+            # loss function with parameter moved by eps*deltaParameter:
+            ThetaTemp = nn_model.thetasArray[l].copy() #TODO delete maybe
+            ThetaTemp = ThetaTemp + eps * deltaTheta[l] #TODO delete maybe
+            # f1_param, _ = grad_check_help(test=test, X=A0, hot_vec=y_hot_vec, Theta=ThetaTemp, L=L,
+            #                               activation_f=activation_f)
+            nn_model.thetasArray[l]=ThetaTemp
+            result_pert, _, _ = grad_check_help(test=test, X=X, hot_vec=y_hot_vec, nn=nn_model)
+            # order eps squared term - deltaParam.T@gradParam, this needs to match the shape of f0,f1:
+            if test == 'hidden_layer':  # deltaT_grad is (n_l, 1)
+                deltaT_grad = np.sum((eps * deltaTheta[l]) * dW, axis=1, keepdims=True)
+            else:  # test is loss or all -> deltaT_grad is a scalar
+                deltaT_grad = ((eps * deltaTheta[l]).reshape(-1, 1).T @ dW.reshape(-1, 1))[0, 0]
+            # archive results:
+            epsilon_term = np.linalg.norm(result_pert - result)
+            epsilon_sq_term = np.linalg.norm(result_pert - result - deltaT_grad)
+            firstOrderArr.append(epsilon_term)
+            secondOrderArr.append(epsilon_sq_term)
+
+            # TODO add call to check bias
+    # plot result
+    plt.plot(rangeArr, firstOrderArr, label="first-order")
+    plt.plot(rangeArr, secondOrderArr, label="second-order")
+    plt.yscale("log")
+
+    plt.legend(loc='lower left', borderaxespad=0.)
+    plt.xlabel('epsilons')
+    plt.ylabel('absolute differance')
+    plt.title('wights gradient test:')
+    plt.show()
+    x=5
+
+    # fig, axs = plt.subplots(len(params) // 2, 2, figsize=(16, 4 * L))
+    # title = f'Gradient Test for ' + test.title() + f'\nRandomized Network Dimensions: {layers_dim}'
+    # fig.suptitle(title, fontsize='xx-large', y=0.96 if L > 1 else 1.2)
+    # for l in range(1, L + 1):
+    #     for i, param in enumerate(['W' + str(l), 'b' + str(l)]):
+    #         axs[(L - 1, i) if L > 1 else i].set_xlabel('iteration')
+    #         idx = (l - 1, i) if L > 1 else i
+    #         layer_mark = 'L' if test == 'loss' else r'\ell' if test == 'hidden_layer' else str(l)
+    #         title = r'Decrease Factor for $' + param[0] + r'^{(' + layer_mark + r')}$'
+    #         axs[idx].set_title(title, fontsize='x-large')
+    #         axs[idx].plot(np.array(range(1, iters + 1)), decrease_factor[param], label=r'$O(\epsilon)$')
+    #         axs[idx].plot(np.array(range(1, iters + 1)), decrease_factor_sq[param], label=r'$O(\epsilon^2)$')
+    #         axs[idx].set_ylim([0, 10])
+    #         axs[idx].legend()
+
+
+if __name__ == "__main__":
+    # grad_check(test='hidden_layer')
+    grad_check(test='loss')
