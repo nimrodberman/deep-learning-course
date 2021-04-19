@@ -112,7 +112,7 @@ class NN:
     """
 
     def softmaxLayer(self, target, theta_n, x_prev_n, b_n):
-        batch_size = b_n.shape[0]
+        batch_size = target.shape[1]
 
         # calculate the scalar scores for each class
         scores = theta_n @ x_prev_n + b_n
