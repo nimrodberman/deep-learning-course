@@ -56,4 +56,5 @@ if __name__ == '__main__':
 
         _, linearLayerArr, nonlinearLayerArr = nn_model.nnForward(testSetX, testSetY)
         acc = accuracy(nonlinearLayerArr[-1], testSetY)
-        print(f"iter number:{i}/{iterations}   loss: {loss}    accuracy:{acc}%")
+        if (i+1)%11==0:
+            print(f"iter number:{i}/{iterations}\tloss: {loss}\taccuracy:{acc}%")
