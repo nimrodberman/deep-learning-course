@@ -1,5 +1,4 @@
 import numpy as np
-# from networkx.algorithms.tests.test_communicability import scipy
 import math
 
 
