@@ -1,4 +1,3 @@
-import torch
 from work2.datasets import *
 from work2.models import *
 # TODO - 3.1.1 print a graph? understand what the meaning and do it.
