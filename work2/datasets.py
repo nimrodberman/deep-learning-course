@@ -1,5 +1,6 @@
 import torch
 
+
 class SeriesDataset:
     def __init__(self):
         pass

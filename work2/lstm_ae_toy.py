@@ -2,9 +2,10 @@ import torch
 from work2.datasets import *
 from work2.models import *
 
-# TODO - 3.1.1 print a graph? understand what the meaning and do it.
-# TODO - 3.1.2
-
+# TODO - 3.1.1 print a graph of the data set.
+# TODO - 3.1.2 print the original vs reconstruction on a graph
+# TODO - 3.1.2 report about the grid search
+# TODO split the data into train test and validation
 
 # ----- grid search ----- #
 test_optimizer_names = ['Adam', 'RMSprop']
