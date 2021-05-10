@@ -10,7 +10,7 @@ class SeriesDataset:
         return torch.randint(0, 10, (size, length))
 
     def toHotVec(self, tensor):
-        return torch.nn.functional.one_hot(tensor,10).float()
+        return torch.nn.functional.one_hot(tensor, 10).float()
 
     def getSyntheticDataInHotVector(self, size, batch, length):
         # return one hot vector
