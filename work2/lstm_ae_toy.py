@@ -1,11 +1,9 @@
-import torch
-import numpy as np
 import matplotlib.pyplot as plt
 from work2.datasets import *
 from work2.models import *
 
+# TODO - 3.1.2 train and report about the grid search
 # TODO - 3.1.2 print the original vs reconstruction on a graph
-# TODO - 3.1.2 report about the grid search
 
 batch_size = 40
 data_size = 10000
@@ -116,43 +114,46 @@ def printReconstrctedAndOriginal(original, reconstructed):
 
 # task 3.1.2 grid search
 
-# ----- grid search ----- #
+# ----- grid search training ----- #
 test_optimizer_names = ['Adam', 'RMSprop']
 test_lr = [0.1, 0.01, 0.001, 0.0001]
 hidden_state_size = [16, 32, 64, 128, 256]
 test_epochs = [100]
 test_gradient_clipping = [True, False]
 
-# for opt in test_optimizer_names:
-#     for lr in test_lr:
-#         for hidden_size in hidden_state_size:
-#             for ep in test_epochs:
-#                 for clipping in test_gradient_clipping:
-#                     synthetic_data_experiment(opt, lr, hidden_size, ep, clipping)
+for opt in test_optimizer_names:
+    for lr in test_lr:
+        for hidden_size in hidden_state_size:
+            for ep in test_epochs:
+                for clipping in test_gradient_clipping:
+                    synthetic_data_experiment(opt, lr, hidden_size, ep, clipping)
 
 synthetic_data_experiment('Adam', 0.001, 64, 500, False)
 
-# # we pick manually the best parameters by the validation set
-# # after picking the hyper parameters
+
+# # # we pick manually the best parameters by the validation set
+# # # after picking the hyper parameters
 # optimal_opt = 'Adam'
-# optimal_lr = 0.1
-# optimal_hidden_size = 16
-# optimal_epochs = 100
-# optimal_clipping = True
-# epoch = 0
+# optimal_lr = 0.001
+# optimal_hidden_size = 64
+# optimal_epochs = 500
+# optimal_clipping = False
+# epoch = 200
 # model = torch.load('ae_toy_{}_{}_{}_{}_{}_{}.pt'.format(optimal_opt, optimal_lr, optimal_hidden_size, optimal_epochs,
 #                                                         optimal_clipping, epoch))
-#
+
+# ----- test best model ----- #
 # # test set evaluation on the chosen hyper parameters
 # model.eval()
 # test_data = syntheticDataGenerator.getSyntheticDataInHotVector(2000, 2000, time_size)[0]
 # _, test_y_hat = model.forward(test_data)
 # # calculate loss
 # loss = model.loss(y=test_data, y_hat=test_y_hat)
-#
+
+# ----- reconstruction best model ----- #
 # # reconstruction demonstration on two examples with our best model
 # with torch.no_grad():
-#     original_data_sample = syntheticDataGenerator.getSyntheticData(2, 5)
+#     original_data_sample = syntheticDataGenerator.getSyntheticData(2, 15)
 #     reconstructed_data = model.forward(syntheticDataGenerator.toHotVec(original_data_sample))[1]
 #     original_data_sample = original_data_sample.numpy()
 #     preds = torch.argmax(reconstructed_data, dim=2).numpy()
