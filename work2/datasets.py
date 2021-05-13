@@ -1,4 +1,5 @@
 import torch
+import pandas as pd
 
 
 class SeriesDataset:
@@ -16,3 +17,26 @@ class SeriesDataset:
         # return one hot vector
         batches = self.getSyntheticData(size, length).split(batch)
         return list(map(self.toHotVec, batches))
+
+
+class sp500Dataset:
+    def __init__(self):
+        self.data = pd.read_csv('SP_500_Stock_Prices_2014-2017.csv')
+
+    def getAllData(self):
+        return self.data
+
+    def getAllCompanyData(self, companyName):
+        return self.data[(self.data.symbol == companyName)]
+
+    def getDataForModel(self):
+        # convert to pandas date object
+        self.data['date'] = pd.to_datetime(self.data.date)
+        # sort by companies name and date
+        sortedCompaniesDict = dict(tuple(self.data.sort_values(['symbol', 'date']).groupby('symbol')))
+        sortedCompaniesList = list(sortedCompaniesDict.values())
+        # filter companies with less then 1007 days of data
+        filteredCompanies = list(filter(lambda company: company.shape[0] == 1007, sortedCompaniesList))
+        filteredCompanies = list(map(lambda company: torch.tensor(company.to_numpy()[:, 2:6]), filteredCompanies))
+
+        return torch.tensor(filteredCompanies)

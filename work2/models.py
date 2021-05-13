@@ -3,7 +3,7 @@ import torch
 
 
 class VaLstm(nn.Module):
-    def __init__(self, inputSize, outputSize, hiddenStateSize, classification=False, labelSize=10):
+    def __init__(self, inputSize, outputSize, hiddenStateSize, classification=False, labelSize=10, sp500Pred=False):
         super(VaLstm, self).__init__()
         # model parameters
         self.inputSize = inputSize
@@ -17,14 +17,17 @@ class VaLstm(nn.Module):
         self.linearDecoder = torch.nn.Linear(hiddenStateSize, outputSize)
         # loss function
         self.loss_function = nn.MSELoss()
-        # self.initParameters()
         self.classification = classification
+        self.sp500Pred = sp500Pred
+
         if self.classification:
             self.classificationLayer = torch.nn.Linear(hiddenStateSize, labelSize)
             self.crossEntropy = nn.CrossEntropyLoss()
+        # TODO - add prediction layer
 
+            # TODO - delete these if init not needed
             # def initParameters(self):
-
+    #
     #     nn.init.kaiming_normal_(self.wOutput.weight.data, nonlinearity="relu")
     #     nn.init.constant_(self.wOutput.bias.data, 0)
 
@@ -39,7 +42,11 @@ class VaLstm(nn.Module):
         decoded_hidden_state, _ = self.lstmDecoder(expand_z)
         # reconstruct to the pixel space
         reconstructed_y = self.linearDecoder(decoded_hidden_state)
-        if self.classification:
+        # TODO - complete
+        if self.sp500Pred:
+            return 0
+
+        elif self.classification:
             # take the last hidden layer from the decoder
             last_hidden_layer = decoded_hidden_state[:, -1]
             y_tilda = self.classificationLayer(last_hidden_layer)
