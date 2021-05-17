@@ -22,7 +22,7 @@ class SeriesDataset:
         return list(map(self.toHotVec, batches))
 
 
-def getMnistDataLoader(batch_size):
+def getMnistDataLoader(batch_size,test_size):
     # For normal distribution
     mean = 0
     std = 1
@@ -35,8 +35,8 @@ def getMnistDataLoader(batch_size):
     # Data shape = (num_of_batch X batch_size X T X input_size)
 
     # Set data loaders
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,)
-    test_loader = DataLoader(train_set, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(train_set, batch_size=test_size, shuffle=True)
 
     # Return data iterator
     return train_loader, test_loader
