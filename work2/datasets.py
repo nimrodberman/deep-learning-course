@@ -1,5 +1,8 @@
 import torch
+import torch.nn.functional as f
+import torchvision
 import pandas as pd
+from sklearn import preprocessing
 
 
 class SeriesDataset:
@@ -51,14 +54,31 @@ class sp500Dataset:
     def getAllCompanyData(self, companyName):
         return self.data[(self.data.symbol == companyName)]
 
-    def getDataForModel(self):
+    def getDataForModel(self,batch_size):
         # convert to pandas date object
         self.data['date'] = pd.to_datetime(self.data.date)
+        # normalize data
+        x = self.data.drop(['date', 'symbol'], axis=1).values
+        min_max_scaler = preprocessing.MinMaxScaler()
+        x_scaled = min_max_scaler.fit_transform(x)
+        self.data[['open', 'high', 'low','close','volume']] = x_scaled
         # sort by companies name and date
         sortedCompaniesDict = dict(tuple(self.data.sort_values(['symbol', 'date']).groupby('symbol')))
         sortedCompaniesList = list(sortedCompaniesDict.values())
         # filter companies with less then 1007 days of data
         filteredCompanies = list(filter(lambda company: company.shape[0] == 1007, sortedCompaniesList))
-        filteredCompanies = list(map(lambda company: torch.tensor(company.to_numpy()[:, 2:6]), filteredCompanies))
+        # keep only open, close, high, low, volume
+        filteredCompanies = list(
+            map(lambda company: torch.from_numpy(company.to_numpy()[:, 2:6].astype(float)), filteredCompanies))
 
-        return torch.tensor(filteredCompanies)
+        data_tesor = torch.stack(filteredCompanies)
+
+
+
+        return torch.split(data_tesor, batch_size, dim=0)
+
+
+
+
+data = sp500Dataset()
+data_model = data.getDataForModel(20)
