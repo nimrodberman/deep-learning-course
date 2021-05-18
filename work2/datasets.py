@@ -16,3 +16,25 @@ class SeriesDataset:
         # return one hot vector
         return self.getSyntheticData(size, length).split(batch)
 
+
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import torch.utils.data as data_utils
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+import pandas as pd
+from sklearn import preprocessing
+
+
+
+def DataGenerator(T):
+    df = pd.read_csv("data/all_stocks_5yr.csv")
+    x = df.drop(['date','Name'],axis=1).values
+    min_max_scaler = preprocessing.MinMaxScaler()
+    x_scaled = min_max_scaler.fit_transform(x)
+    df = pd.DataFrame(x_scaled)
+    x=5
+DataGenerator(1200)
