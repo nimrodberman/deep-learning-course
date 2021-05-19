@@ -8,7 +8,7 @@ from work2.models import *
 batch_size = 40
 # data_size = 10000
 # time_size = 1007
-time_size = 300
+time_size = 50
 # input_size = 5
 input_size = 1
 data_gen = sp500Dataset()
@@ -35,6 +35,8 @@ def snp500_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradie
     model = VaLstm(inputSize=input_size, outputSize=input_size, hiddenStateSize=hidden_state_size, classification=False,
                    sp500Pred=False)
     model = model.float()
+
+
 
     # ------ selecting optimizer ----- #
     if optimizer_name == 'Adam':

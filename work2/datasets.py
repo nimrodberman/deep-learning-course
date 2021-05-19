@@ -23,29 +23,6 @@ class SeriesDataset:
         return self.getSyntheticData(size, length).split(batch)
 
 
-
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-import pandas as pd
-import torch.utils.data as data_utils
-from sklearn.preprocessing import MinMaxScaler
-import pandas as pd
-import pandas as pd
-from sklearn import preprocessing
-
-
-
-def DataGenerator(T):
-    df = pd.read_csv("data/all_stocks_5yr.csv")
-    x = df.drop(['date','Name'],axis=1).values
-    min_max_scaler = preprocessing.MinMaxScaler()
-    x_scaled = min_max_scaler.fit_transform(x)
-    df = pd.DataFrame(x_scaled)
-    x=5
-DataGenerator(1200)
-
-
 class sp500Dataset:
     def __init__(self):
         self.data = pd.read_csv('SP_500_Stock_Prices_2014-2017.csv')
@@ -56,15 +33,21 @@ class sp500Dataset:
     def getAllCompanyData(self, companyName):
         return self.data[(self.data.symbol == companyName)]
 
-    def getDataForModel(self, batch_size,time=1007 ,show_data=False):
+    def getDataForModel(self, batch_size, time=1007, show_data=False):
         unnormalize_data = self.data.copy()
         # convert to pandas date object
         self.data['date'] = pd.to_datetime(self.data.date)
         # normalize data
         x = self.data.drop(['date', 'symbol'], axis=1).values
+
+        # x = self.data.drop(['date', 'symbol', 'open', 'close', 'low', 'volume'], axis=1).values
+
         min_max_scaler = preprocessing.MinMaxScaler()
         x_scaled = min_max_scaler.fit_transform(x)
         self.data[['open', 'high', 'low', 'close', 'volume']] = x_scaled
+
+        # self.data['high'] = x_scaled
+
         # sort by companies name and date
         sortedCompaniesDict = dict(tuple(self.data.sort_values(['symbol', 'date']).groupby('symbol')))
         sortedCompaniesList = list(sortedCompaniesDict.values())
