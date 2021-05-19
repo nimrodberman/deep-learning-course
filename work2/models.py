@@ -39,9 +39,12 @@ class VaLstm(nn.Module):
         # expand z to be T times
         expand_z = z.repeat(1, inputs.shape[1]).view(encoded_inputs.shape)
         # decode to get hidden states
+
         decoded_hidden_state, _ = self.lstmDecoder(expand_z)
+        # decoded_hidden_state, _ = self.lstmDecoder(encoded_inputs)
         # reconstruct to the pixel space
         reconstructed_y = self.linearDecoder(decoded_hidden_state)
+
         # TODO - complete
         if self.sp500Pred:
             return 0
