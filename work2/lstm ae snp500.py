@@ -5,7 +5,8 @@ from work2.models import *
 # TODO - 3.1.2 train and report about the grid search
 # TODO - 3.1.2 print the original vs reconstruction on a graph
 
-batch_size = 40
+num_of_epochs = 10000
+batch_size = 20
 # data_size = 10000
 # time_size = 1007
 time_size = 50
@@ -14,7 +15,9 @@ input_size = 1
 data_gen = sp500Dataset()
 train_data, validation_data = data_gen.getDataForModel(batch_size, time_size)
 validation_data = validation_data.reshape(len(validation_data), time_size, input_size)
-print_every = 1  # epochs
+
+lr=0.0001
+print_every = 10  # epochs
 # open, high, low, close, volume = 0, 1, 2, 3, 4
 attribute_dict = {
     'open': 0
@@ -23,7 +26,7 @@ attribute_dict = {
     # "close": 3,
     # "volume": 4
 }
-hidden_state_size = 256
+hidden_state_size = 128
 
 
 def snp500_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradient_cliping):
@@ -139,4 +142,4 @@ def printReconstrctedAndOriginal(original, reconstructed):
 # task 3.1.2 grid search
 
 
-snp500_data_experiment('Adam', 0.001, hidden_state_size, 500, False)
+snp500_data_experiment('Adam', lr, hidden_state_size, num_of_epochs, False)
