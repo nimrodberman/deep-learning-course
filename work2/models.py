@@ -23,13 +23,8 @@ class VaLstm(nn.Module):
         if self.classification:
             self.classificationLayer = torch.nn.Linear(hiddenStateSize, labelSize)
             self.crossEntropy = nn.CrossEntropyLoss()
-        # TODO - add prediction layer
 
-            # TODO - delete these if init not needed
-            # def initParameters(self):
-    #
-    #     nn.init.kaiming_normal_(self.wOutput.weight.data, nonlinearity="relu")
-    #     nn.init.constant_(self.wOutput.bias.data, 0)
+
 
     def forward(self, inputs):
         # encode the inputs using lstm and get h_n
@@ -45,24 +40,25 @@ class VaLstm(nn.Module):
         # reconstruct to the pixel space
         reconstructed_y = self.linearDecoder(decoded_hidden_state)
 
-        # TODO - complete
-        if self.sp500Pred:
-            return 0
-
-        elif self.classification:
+        if self.classification:
             # take the last hidden layer from the decoder
             last_hidden_layer = decoded_hidden_state[:, -1]
             y_tilda = self.classificationLayer(last_hidden_layer)
             return encoded_inputs, reconstructed_y, y_tilda
-        #     TODO remove encoder input, refactor y_hat to x_tilda
+
         else:
             return encoded_inputs, reconstructed_y
 
     def loss(self, y, y_hat, target=None, y_tilda=None):
-        if self.classification:
+        if self.sp500Pred and self.classification:
+            return (self.loss_function(y, y_hat) + self.loss_function(target, y_tilda)) / 2
+        elif self.classification:
             return (self.loss_function(y, y_hat) + self.crossEntropy(target, y_tilda)) / 2
         else:
             return self.loss_function(y, y_hat)
+
+    def pred_loss(self,target, y_tilda):
+        return self.loss_function(target, y_tilda) / 2
 
     def accuracy(self, y, y_hat):
         batch_number = y.shape[0]
