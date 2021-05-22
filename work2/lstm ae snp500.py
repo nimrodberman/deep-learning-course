@@ -5,16 +5,19 @@ from work2.models import *
 # TODO - 3.1.2 train and report about the grid search
 # TODO - 3.1.2 print the original vs reconstruction on a graph
 
-batch_size = 40
+batch_size = 20
 # data_size = 10000
 # time_size = 1007
-time_size = 300
+time_size = 350
 # input_size = 5
 input_size = 1
 data_gen = sp500Dataset()
-train_data, validation_data = data_gen.getDataForModel(batch_size, time_size)
-validation_data = validation_data.reshape(len(validation_data), time_size, input_size)
-print_every = 1  # epochs
+syntheticDataGenerator = SeriesDataset()
+train_data = syntheticDataGenerator.getSyntheticDataInBatches(6000, batch_size, time_size)
+validation_data = syntheticDataGenerator.getSyntheticDataInBatches(40, 40, time_size)[0]
+# train_data, validation_data = data_gen.getDataForModel(batch_size, time_size)
+# validation_data = validation_data.reshape(len(validation_data), time_size, input_size)
+print_every = 10  # epochs
 # open, high, low, close, volume = 0, 1, 2, 3, 4
 attribute_dict = {
     'open': 0
@@ -23,7 +26,7 @@ attribute_dict = {
     # "close": 3,
     # "volume": 4
 }
-hidden_state_size = 256
+hidden_state_size = 512
 
 
 def snp500_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradient_cliping):
@@ -32,7 +35,7 @@ def snp500_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradie
     weight_decay = 0
     optimizer = None
     gradient_clipping = gradient_cliping
-    model = VaLstm(inputSize=input_size, outputSize=input_size, hiddenStateSize=hidden_state_size, classification=False,
+    model = VaLstm(inputSize=input_size, outputSize=input_ size, hiddenStateSize=hidden_state_size, classification=False,
                    sp500Pred=False)
     model = model.float()
 
@@ -62,18 +65,17 @@ def snp500_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradie
                 nn.utils.clip_grad_norm(model.parameters(), max_norm=1)
             # update weights
             optimizer.step()
-
         if epoch % print_every == 0:
             model.eval()
             _, val_rec = model.forward(validation_data)
-            acc = model.accuracy(validation_data, val_rec)
+            # acc = model.accuracy(validation_data, val_rec)
             print('Epoch: {}/{}.............'.format(epoch, epochs), end=' ')
             print("Loss: {:.4f}".format(loss.item()))
-            print("Accuracy: {:.4f}".format(acc))
+            # print("Accuracy: {:.4f}".format(acc))
             resultLoss.append(loss.item())
-            resultAcc.append(acc)
+            # resultAcc.append(acc)
             model.train()
-            printReconstrctedAndOriginal(batch[:3], y_hat[:3].detach().numpy())
+            printReconstrctedAndOriginal(batch, y_hat.detach().numpy())
         # save each 100 epochs the model weights
         if epoch % 100 == 0:
             torch.save(model, 'ae_toy_{}_{}_{}_{}_{}_{}.pt'.format(optimizer_name, lr, hidden_state_size, epochs,
@@ -137,4 +139,4 @@ def printReconstrctedAndOriginal(original, reconstructed):
 # task 3.1.2 grid search
 
 
-snp500_data_experiment('Adam', 0.001, hidden_state_size, 500, False)
+snp500_data_experiment('Adam', 0.001, hidden_state_size, 1000, False)

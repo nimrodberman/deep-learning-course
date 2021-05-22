@@ -13,15 +13,14 @@ class SeriesDataset:
 
     def getSyntheticData(self, size, length):
         # return sequences of length, size times. size is the number of rows.
-        return torch.randint(0, 10, (size, length))
+        return torch.FloatTensor(size, length, 1).uniform_(0, 1)
 
     def toHotVec(self, tensor):
         return torch.nn.functional.one_hot(tensor, 10).float()
 
-    def getSyntheticDataInHotVector(self, size, batch, length):
+    def getSyntheticDataInBatches(self, size, batch, length):
         # return one hot vector
-        batches = self.getSyntheticData(size, length).split(batch)
-        return list(map(self.toHotVec, batches))
+        return self.getSyntheticData(size, length).split(batch)
 
 
 class sp500Dataset:
@@ -39,22 +38,25 @@ class sp500Dataset:
         # convert to pandas date object
         self.data['date'] = pd.to_datetime(self.data.date)
         # normalize data
-        x = self.data.drop(['date', 'symbol'], axis=1).values
+        # x = self.data.drop(['date', 'symbol'], axis=1).values
         min_max_scaler = preprocessing.MinMaxScaler()
-        x_scaled = min_max_scaler.fit_transform(x)
-        self.data[['open', 'high', 'low', 'close', 'volume']] = x_scaled
+        # x_scaled = min_max_scaler.fit_transform(x)
+        # self.data[['open', 'high', 'low', 'close', 'volume']] = x_scaled
         # sort by companies name and date
         sortedCompaniesDict = dict(tuple(self.data.sort_values(['symbol', 'date']).groupby('symbol')))
         sortedCompaniesList = list(sortedCompaniesDict.values())
 
         # filter companies with less then 1007 days of data
         filteredCompanies = list(filter(lambda company: company.shape[0] == 1007, sortedCompaniesList))
+        filteredCompaniesNormelaized = list(map(lambda seq: min_max_scaler.fit_transform(pd.DataFrame(seq['open'].to_numpy().T, columns=['open']).values), filteredCompanies))
+        filteredCompaniesNormelaizedInTensor = list(map(lambda seq: torch.tensor(seq[0:time]).view(time,1), filteredCompaniesNormelaized))
+        # filteredCompanies = list(map(lambda seq: torch.from_numpy(seq['open'].to_numpy()).view(-1,1), filteredCompanies))
 
         # keep only high
-        filteredCompanies = list(
-            map(lambda company: torch.from_numpy(company.to_numpy()[:, 3].astype(float))[:time], filteredCompanies))
+        # filteredCompanies = list(
+        #     map(lambda company: torch.from_numpy(company.to_numpy()[:, 3].astype(float))[:time], filteredCompanies))
 
-        data_tesor = torch.stack(filteredCompanies)
+        data_tesor = torch.stack(filteredCompaniesNormelaizedInTensor)
 
         if show_data:
             self.show_amazon_and_google(unnormalize_data)

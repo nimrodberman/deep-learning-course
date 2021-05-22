@@ -5,13 +5,13 @@ from work2.models import *
 # TODO - 3.1.2 train and report about the grid search
 # TODO - 3.1.2 print the original vs reconstruction on a graph
 
-batch_size = 40
-data_size = 10000
-time_size = 15
+batch_size = 20
+data_size = 300
+time_size = 20
 syntheticDataGenerator = SeriesDataset()
-data = syntheticDataGenerator.getSyntheticDataInHotVector(data_size, batch_size, time_size)
-train_data = syntheticDataGenerator.getSyntheticDataInHotVector(6000, batch_size, time_size)
-validation_data = syntheticDataGenerator.getSyntheticDataInHotVector(2000, 2000, time_size)[0]
+data = syntheticDataGenerator.getSyntheticDataInBatches(data_size, batch_size, time_size)
+train_data = syntheticDataGenerator.getSyntheticDataInBatches(6000, batch_size, time_size)
+validation_data = syntheticDataGenerator.getSyntheticDataInBatches(2000, 2000, time_size)[0]
 
 
 def synthetic_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradient_cliping):
@@ -20,7 +20,7 @@ def synthetic_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gra
     weight_decay = 0
     optimizer = None
     gradient_clipping = gradient_cliping
-    model = VaLstm(inputSize=10, outputSize=10, hiddenStateSize=hidden_state_size)
+    model = VaLstm(inputSize=1, outputSize=1, hiddenStateSize=hidden_state_size)
 
     # ------ selecting optimizer ----- #
     if optimizer_name == 'Adam':
@@ -121,14 +121,14 @@ hidden_state_size = [16, 32, 64, 128, 256]
 test_epochs = [100]
 test_gradient_clipping = [True, False]
 
-for opt in test_optimizer_names:
-    for lr in test_lr:
-        for hidden_size in hidden_state_size:
-            for ep in test_epochs:
-                for clipping in test_gradient_clipping:
-                    synthetic_data_experiment(opt, lr, hidden_size, ep, clipping)
+# for opt in test_optimizer_names:
+#     for lr in test_lr:
+#         for hidden_size in hidden_state_size:
+#             for ep in test_epochs:
+#                 for clipping in test_gradient_clipping:
+#                     synthetic_data_experiment(opt, lr, hidden_size, ep, clipping)
 
-synthetic_data_experiment('Adam', 0.001, 64, 500, False)
+synthetic_data_experiment('Adam', 0.001, 128, 500, False)
 
 
 # # # we pick manually the best parameters by the validation set
