@@ -1,3 +1,4 @@
+#@title model { form-width: "60px" }
 import torch.nn as nn
 import torch
 
@@ -68,11 +69,10 @@ class VaLstm(nn.Module):
         total_hits = 0
         for g, r in zip(ground_truth, reconstruction):
             total_hits += sum(g == r)
-
         return (total_hits.item() / float(batch_number * time_steps)) * 100
 
     def classification_accuracy(self, target, y_tilda):
-        preds = torch.argmax(y_tilda, dim=0)
-        res = torch.argmax(target, dim=1)
+        preds = torch.argmax(y_tilda, dim=1)
+        res = target
         accuracy = sum(preds == res) / (float(len(target))) * 100
         return accuracy
