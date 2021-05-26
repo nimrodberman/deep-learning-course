@@ -4,9 +4,9 @@ from work2.models import *
 # TODO - 3.1.1 print a graph? understand what the meaning and do it.
 # TODO - 3.1.2
 
-batch_size = 20
-data_size = 100000
-time_size = 10
+batch_size = 8
+data_size = 72
+time_size = 50
 optimizer_name = 'Adam'
 lr = 0.01
 weight_decay = 0
