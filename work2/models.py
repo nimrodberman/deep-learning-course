@@ -4,7 +4,7 @@ import torch
 
 
 class VaLstm(nn.Module):
-    def __init__(self, inputSize, outputSize, hiddenStateSize, classification=False, labelSize=10):
+    def __init__(self, inputSize, outputSize, hiddenStateSize, classification=False, labelSize=10, sp500Pred=False):
         super(VaLstm, self).__init__()
         # model parameters
         self.inputSize = inputSize
@@ -18,16 +18,14 @@ class VaLstm(nn.Module):
         self.linearDecoder = torch.nn.Linear(hiddenStateSize, outputSize)
         # loss function
         self.loss_function = nn.MSELoss()
-        # self.initParameters()
         self.classification = classification
+        self.sp500Pred = sp500Pred
+
         if self.classification:
             self.classificationLayer = torch.nn.Linear(hiddenStateSize, labelSize)
             self.crossEntropy = nn.CrossEntropyLoss()
 
-            # def initParameters(self):
 
-    #     nn.init.kaiming_normal_(self.wOutput.weight.data, nonlinearity="relu")
-    #     nn.init.constant_(self.wOutput.bias.data, 0)
 
     def forward(self, inputs):
         # encode the inputs using lstm and get h_n
@@ -37,24 +35,31 @@ class VaLstm(nn.Module):
         # expand z to be T times
         expand_z = z.repeat(1, inputs.shape[1]).view(encoded_inputs.shape)
         # decode to get hidden states
+
         decoded_hidden_state, _ = self.lstmDecoder(expand_z)
+        # decoded_hidden_state, _ = self.lstmDecoder(encoded_inputs)
         # reconstruct to the pixel space
         reconstructed_y = self.linearDecoder(decoded_hidden_state)
+
         if self.classification:
             # take the last hidden layer from the decoder
             last_hidden_layer = decoded_hidden_state[:, -1]
             y_tilda = self.classificationLayer(last_hidden_layer)
             return encoded_inputs, reconstructed_y, y_tilda
-        #     TODO remove encoder input, refactor y_hat to x_tilda
+
         else:
             return encoded_inputs, reconstructed_y
 
     def loss(self, y, y_hat, target=None, y_tilda=None):
-        if self.classification:
-            ce=self.crossEntropy(y_tilda,target)
-            return (self.loss_function(y, y_hat) + ce) / 2
+        if self.sp500Pred and self.classification:
+            return (self.loss_function(y, y_hat) + self.loss_function(target, y_tilda)) / 2
+        elif self.classification:
+            return (self.loss_function(y, y_hat) + self.crossEntropy(target, y_tilda)) / 2
         else:
             return self.loss_function(y, y_hat)
+
+    def pred_loss(self,target, y_tilda):
+        return self.loss_function(target, y_tilda) / 2
 
     def accuracy(self, y, y_hat):
         batch_number = y.shape[0]

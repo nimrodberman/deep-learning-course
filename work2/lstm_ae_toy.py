@@ -6,7 +6,7 @@ from work2.models import *
 # TODO - 3.1.2 train and report about the grid search
 # TODO - 3.1.2 print the original vs reconstruction on a graph
 
-data_size = 10000
+data_size = 400
 time_size = 50
 syntheticDataGenerator = SeriesDataset()
 
@@ -78,7 +78,7 @@ def synthetic_data_experiment(batch_size, optimizer_name, lr, hidden_state_size,
 def printSequenceOnGraph(seq, i, lType):
     x = range(len(seq))
     y = seq
-    plt.plot(x, y, label='{} signal {}'.format(lType, 1))
+    plt.plot(x, y, label='{} signal {}'.format(lType, i))
 
 
 def printMultipleSequencesOnGraph(sequences, lType, name):
