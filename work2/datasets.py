@@ -6,6 +6,9 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.datasets import MNIST
 
 
 class SeriesDataset:
@@ -26,7 +29,7 @@ class SeriesDataset:
 
 def getMnistDataLoader(batch_size,test_size):
     # For normal distribution
-    mean = 0
+    mean = 0.5
     std = 1
     # Set data transformation
     train_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
