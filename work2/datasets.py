@@ -24,7 +24,6 @@ class SeriesDataset:
         return self.getSyntheticData(size, length).split(batch)
 
 
-
 def getMnistDataLoader(batch_size,test_size):
     # For normal distribution
     mean = 0
@@ -44,17 +43,6 @@ def getMnistDataLoader(batch_size,test_size):
     # Return data iterator
     return train_loader, test_loader
 
-#
-# if __name__ == '__main__':
-#     # x = getMnistData(8)
-#     mean = 0
-#     std = 1
-#     train_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
-#     train_set = MNIST(root='./data', train=True, download=True, transform=train_transform)
-#     loader = DataLoader(train_set, batch_size=1, shuffle=False)
-#     image, label = next(iter(loader))
-#     len(train_set)
-#     x = 5
 
 class sp500Dataset:
     def __init__(self):
@@ -63,49 +51,7 @@ class sp500Dataset:
     def getAllData(self):
         return self.data
 
-    def getAllCompanyData(self, companyName):
-        return self.data[(self.data.symbol == companyName)]
-
-    # def getDataForModel(self, batch_size, time=1007, show_data=False):
-    #     unnormalize_data = self.data.copy()
-    #     # convert to pandas date object
-    #     self.data['date'] = pd.to_datetime(self.data.date)
-    #     # normalize data
-    #     x = self.data.drop(['date', 'symbol'], axis=1).values
-    #
-    #     # x = self.data.drop(['date', 'symbol', 'open', 'close', 'low', 'volume'], axis=1).values
-    #
-    #     min_max_scaler = preprocessing.MinMaxScaler()
-    #     x_scaled = min_max_scaler.fit_transform(x)
-    #     self.data[['open', 'high', 'low', 'close', 'volume']] = x_scaled
-    #
-    #     # self.data['high'] = x_scaled
-    #
-    #     # sort by companies name and date
-    #     sortedCompaniesDict = dict(tuple(self.data.sort_values(['symbol', 'date']).groupby('symbol')))
-    #     sortedCompaniesList = list(sortedCompaniesDict.values())
-    #
-    #     # filter companies with less then 1007 days of data
-    #     filteredCompanies = list(filter(lambda company: company.shape[0] == 1007, sortedCompaniesList))
-    #
-    #     # keep only high
-    #     filteredCompanies = list(
-    #         map(lambda company: torch.from_numpy(company.to_numpy()[:, 3].astype(float))[:time], filteredCompanies))
-    #
-    #     data_tesor = torch.stack(filteredCompanies)
-    #
-    #     if show_data:
-    #         self.show_amazon_and_google(unnormalize_data)
-    #
-    #     m = len(data_tesor)
-    #     train = data_tesor[:(int)(3 / 4 * m)].float()
-    #     validation = data_tesor[(int)(3 / 4 * m):].float()
-    #
-    #     batchs = torch.split(train, batch_size, dim=0)
-    #     return batchs, validation
-
-
-    # normalize each sample separately
+     # normalize each sample separately
     def getDataForModel(self, batch_size, time=1007, show_data=False):
         unnormalize_data = self.data.copy()
         # convert to pandas date object
@@ -143,6 +89,7 @@ class sp500Dataset:
         # normalize data
         company -= company.min()
         company /= company.max()
+
     def show_amazon_and_google(self, data):
         # amz_idx = 37
         # gogl_idx = 197
@@ -163,19 +110,8 @@ class sp500Dataset:
         amzn_arr = np.array(amzn_lst)
         amzn = np.reshape(amzn_arr, (1007, 7))[:, 3]
 
-        # sortedCompaniesList = list(sortedCompaniesDict.values())
-
-        # filter companies with less then 1007 days of data
-        # filteredCompanies = list(filter(lambda company: company.shape[0] == 1007, sortedCompaniesList))
-
-        # keep only high value
-        # high_vals_googl = list(torch.from_numpy(google_lst[:, 3:4].astype(float)))
         date_vals = list(
             map(lambda company: company.to_numpy()[:, 1:2], sortedCompaniesList))[0]
-
-        # data_tesor = torch.stack(high_vals)
-        # googl = high_vals[gogl_idx]
-        # amzn = high_vals[amz_idx]
 
         plt.plot(date_vals, googl, label='GOOGL')
         plt.plot(date_vals, amzn, label='AMZN')
@@ -185,7 +121,3 @@ class sp500Dataset:
         plt.legend()
         plt.show()
         x = 5
-
-#
-# data_gen = sp500Dataset()
-# dataset = data_gen.getDataForModel(20, False)

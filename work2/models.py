@@ -37,7 +37,10 @@ class VaLstm(nn.Module):
         # decode to get hidden states
 
         decoded_hidden_state, _ = self.lstmDecoder(expand_z)
+        # --- task 3.2 additional experiment change ----
         # decoded_hidden_state, _ = self.lstmDecoder(encoded_inputs)
+        # --- task 3.2 additional experiment change ----
+
         # reconstruct to the pixel space
         reconstructed_y = self.linearDecoder(decoded_hidden_state)
 

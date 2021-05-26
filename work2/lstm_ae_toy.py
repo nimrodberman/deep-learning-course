@@ -3,9 +3,6 @@ import numpy as np
 from work2.datasets import *
 from work2.models import *
 
-# TODO - 3.1.2 train and report about the grid search
-# TODO - 3.1.2 print the original vs reconstruction on a graph
-
 data_size = 400
 time_size = 50
 syntheticDataGenerator = SeriesDataset()

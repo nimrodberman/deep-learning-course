@@ -115,7 +115,6 @@ def serial_mnist_experiment(optimizer_name, lr, hidden_state_size, epochs, gradi
     print_and_save_result(resultLoss, resultAcc)
 
 
-# TODO - save a picture of the
 def print_and_save_result(acc, loss):
     return 0
 

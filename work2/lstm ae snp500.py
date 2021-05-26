@@ -2,8 +2,7 @@ import matplotlib.pyplot as plt
 from work2.datasets import *
 from work2.models import *
 
-# TODO - 3.1.2 train and report about the grid search
-# TODO - 3.1.2 print the original vs reconstruction on a graph
+
 load = False
 num_of_epochs = 1000000
 batch_size = 20
@@ -114,10 +113,6 @@ def snp500_data_experiment(optimizer_name, lr, hidden_state_size, epochs, gradie
 
     print('ae_snp500_{}_{}_{}_{}_{}'.format(optimizer_name, lr, hidden_state_size, epochs,
                                             gradient_cliping))
-    # np.savetxt('resultAcc_{}_{}_{}_{}_{}.csv'.format(optimizer_name, lr, hidden_state_size, epochs,
-    #                                                  gradient_cliping), resultAcc, delimiter=',')
-    # np.savetxt('resultLoss_{}_{}_{}_{}_{}.csv'.format(optimizer_name, lr, hidden_state_size, epochs,
-    #                                                   gradient_cliping), resultLoss, delimiter=',')
 
 
 def printSequenceOnGraph(seq, i, lType, feature, linestyle='solid'):
@@ -160,13 +155,7 @@ def printReconstrctedAndOriginal(original, reconstructed):
         printSequenceOnGraph(seq, i, 'original', feature=high)
     for i, seq in enumerate(reconstructed):
         printSequenceOnGraph(seq, i, 'reconstructed', feature=high, linestyle='dashed')
-    #
-    # original = original[0]
-    # reconstructed = reconstructed[0]
-    # for i, atr in enumerate(attribute_dict):
-    #     printSequenceOnGraph(original, atr, 'original', feature=i)
-    # for i, atr in enumerate(attribute_dict):
-    #     printSequenceOnGraph(reconstructed, atr, 'reconstructed', feature=i, linestyle='dashed')
+
     plt.xlabel('days')
     plt.ylabel('high value')
     plt.title('S&P500 Ground Truth vs. Reconstruction')
@@ -175,12 +164,15 @@ def printReconstrctedAndOriginal(original, reconstructed):
     # plt.savefig('{}.png'.format('comparing toy result'))
 
 
-# task 3.1.1
-# syntheticDataGenerator = SeriesDataset()
-# signals = syntheticDataGenerator.getSyntheticData(2, 50).numpy()
-# printMultipleSequencesOnGraph(signals, 'original', '2_original_samples')
+# ----- 3.3.1 daily maximum ----#
+sp500data = sp500Dataset()
+amazonData = sp500data.getAllCompanyData('AMZN')
+googleData = sp500data.getAllCompanyData('GOOGL')
+amazonHigh = amazonData.filter(items=['high']).to_numpy().T
+googleHigh = googleData.filter(items=['high']).to_numpy().T
+amazonAndGoogleHigh = np.concatenate([amazonHigh, googleHigh])
+printMultipleSequencesOnGraph(amazonAndGoogleHigh, ['AMZM', 'GOOGL'], 'Amazon and Google High Stock Price - 2014 - 2017')
+
 
 # task 3.1.2 grid search
-
-
 snp500_data_experiment('Adam', lr, hidden_state_size, num_of_epochs, False,classification=classification)

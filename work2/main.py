@@ -1,8 +1,7 @@
 import torch
 from work2.datasets import *
 from work2.models import *
-# TODO - 3.1.1 print a graph? understand what the meaning and do it.
-# TODO - 3.1.2
+
 
 batch_size = 8
 data_size = 72
